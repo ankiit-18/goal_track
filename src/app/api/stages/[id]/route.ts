@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getUserIdFromCookies } from "@/lib/api-auth";
 import { serializeGoal } from "@/lib/goal-dto";
+import { syncGoalStatusWithStages } from "@/lib/sync-goal-status";
 
 const patchSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -57,6 +58,8 @@ export async function PATCH(request: Request, context: RouteContext) {
     },
   });
 
+  await syncGoalStatusWithStages(stage.goalId);
+
   const goal = await prisma.goal.findFirstOrThrow({
     where: { id: stage.goalId },
     include: { stages: { orderBy: { deadline: "asc" } } },
@@ -79,6 +82,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   const goalId = stage.goalId;
   await prisma.stage.delete({ where: { id } });
+
+  await syncGoalStatusWithStages(goalId);
 
   const goal = await prisma.goal.findFirstOrThrow({
     where: { id: goalId },

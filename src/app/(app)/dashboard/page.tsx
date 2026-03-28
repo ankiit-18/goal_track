@@ -12,6 +12,9 @@ import {
   cardMutedClass,
   sectionTitleClass,
 } from "@/lib/ui-styles";
+import { isGoalFullyCompleteFromStages } from "@/lib/sync-goal-status";
+
+export const dynamic = "force-dynamic";
 
 type GoalWithStages = Prisma.GoalGetPayload<{ include: { stages: true } }>;
 
@@ -50,8 +53,12 @@ export default async function DashboardPage() {
     .sort((a, b) => a.deadline.getTime() - b.deadline.getTime())
     .slice(0, 12);
 
-  const doneCount = goals.filter((g) => g.status === "COMPLETED").length;
-  const pendingCount = goals.filter((g) => g.status !== "COMPLETED").length;
+  const doneCount = goals.filter((g) =>
+    isGoalFullyCompleteFromStages(g.stages)
+  ).length;
+  const pendingCount = goals.filter(
+    (g) => !isGoalFullyCompleteFromStages(g.stages)
+  ).length;
 
   return (
     <div className="space-y-10">
@@ -183,6 +190,7 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {goals.map((g) => {
               const progress = goalProgressPercent(g.stages);
+              const derivedComplete = isGoalFullyCompleteFromStages(g.stages);
               return (
                 <GoalCard
                   key={g.id}
@@ -190,7 +198,7 @@ export default async function DashboardPage() {
                   title={g.title}
                   description={g.description}
                   progress={progress}
-                  status={g.status as "ACTIVE" | "COMPLETED"}
+                  status={derivedComplete ? "COMPLETED" : "ACTIVE"}
                   startDateLabel={g.startDate.toLocaleDateString()}
                   endDateLabel={g.endDate.toLocaleDateString()}
                 />

@@ -44,9 +44,6 @@ export function GoalDetail({ initial }: Props) {
     toDatetimeLocalValue(new Date().toISOString())
   );
 
-  const [aiSteps, setAiSteps] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
-
   const sortedStages = useMemo(
     () =>
       [...goal.stages].sort(
@@ -54,6 +51,11 @@ export function GoalDetail({ initial }: Props) {
       ),
     [goal.stages]
   );
+
+  function applyGoalFromServer(g: SerializedGoal) {
+    setGoal(g);
+    setEditStatus(g.status === "COMPLETED" ? "COMPLETED" : "ACTIVE");
+  }
 
   async function saveGoal(e: React.FormEvent) {
     e.preventDefault();
@@ -76,7 +78,7 @@ export function GoalDetail({ initial }: Props) {
         setError(typeof data.error === "string" ? data.error : "Could not save");
         return;
       }
-      if (data.goal) setGoal(data.goal);
+      if (data.goal) applyGoalFromServer(data.goal);
       router.refresh();
     } finally {
       setPending(false);
@@ -119,7 +121,7 @@ export function GoalDetail({ initial }: Props) {
         return;
       }
       if (data.goal) {
-        setGoal(data.goal);
+        applyGoalFromServer(data.goal);
         setNewStageTitle("");
       }
       router.refresh();
@@ -142,7 +144,7 @@ export function GoalDetail({ initial }: Props) {
         setError(typeof data.error === "string" ? data.error : "Could not update");
         return;
       }
-      if (data.goal) setGoal(data.goal);
+      if (data.goal) applyGoalFromServer(data.goal);
       router.refresh();
     } finally {
       setPending(false);
@@ -159,31 +161,10 @@ export function GoalDetail({ initial }: Props) {
         setError("Could not delete stage");
         return;
       }
-      if (data.goal) setGoal(data.goal);
+      if (data.goal) applyGoalFromServer(data.goal);
       router.refresh();
     } finally {
       setPending(false);
-    }
-  }
-
-  async function suggestBreakdown() {
-    setError(null);
-    setAiLoading(true);
-    setAiSteps(null);
-    try {
-      const res = await fetch("/api/ai-breakdown", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal: goal.title }),
-      });
-      const data = (await res.json()) as { error?: string; steps?: string };
-      if (!res.ok) {
-        setError(typeof data.error === "string" ? data.error : "AI request failed");
-        return;
-      }
-      if (typeof data.steps === "string") setAiSteps(data.steps);
-    } finally {
-      setAiLoading(false);
     }
   }
 
@@ -215,32 +196,6 @@ export function GoalDetail({ initial }: Props) {
           </span>
         </div>
         <ProgressBar value={goal.progress} />
-      </section>
-
-      <section className={cardClass}>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className={sectionTitleClass}>AI breakdown</h2>
-          <button
-            type="button"
-            disabled={aiLoading || pending}
-            onClick={() => void suggestBreakdown()}
-            className={btnSecondaryClass}
-          >
-            {aiLoading ? "Generating…" : "Suggest steps"}
-          </button>
-        </div>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Uses your goal title to propose actionable steps (configure{" "}
-          <code className="rounded bg-zinc-100 px-1 text-xs dark:bg-zinc-800">
-            OPENAI_API_KEY
-          </code>{" "}
-          on the server).
-        </p>
-        {aiSteps ? (
-          <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-4 text-sm leading-relaxed text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-200">
-            {aiSteps}
-          </pre>
-        ) : null}
       </section>
 
       <section>
@@ -351,12 +306,22 @@ export function GoalDetail({ initial }: Props) {
             />
           </label>
           <button
-            type="submit"
-            disabled={pending}
-            className={`${btnSecondaryClass} border-zinc-800 bg-zinc-900 text-white hover:bg-zinc-800 dark:border-zinc-600 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white`}
-          >
-            Add stage
-          </button>
+  type="submit"
+  disabled={pending}
+  className={`
+    inline-flex items-center justify-center
+    rounded-xl px-5 py-2.5
+    text-sm font-medium
+    transition
+    ${
+      pending
+        ? "bg-zinc-400 text-white cursor-not-allowed"
+        : "bg-black text-white hover:bg-zinc-800"
+    }
+  `}
+>
+  {pending ? "Adding..." : "Add Stage"}
+</button>
         </form>
 
         {sortedStages.length === 0 ? (
