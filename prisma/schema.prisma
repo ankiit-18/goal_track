@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  email         String         @unique
+  passwordHash  String
+  name          String?
+  createdAt     DateTime       @default(now())
+  goals         Goal[]
+  weeklyHabits  WeeklyHabit[]
+}
+
+model WeeklyHabit {
+  id          String                   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String                   @db.ObjectId
+  user        User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekday     Int // 1 = Monday … 7 = Sunday (ISO)
+  title       String
+  sortOrder   Int                      @default(0)
+  createdAt   DateTime                 @default(now())
+  completions WeeklyHabitCompletion[]
+
+  @@index([userId, weekday])
+}
+
+model WeeklyHabitCompletion {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  habitId   String      @db.ObjectId
+  habit     WeeklyHabit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  dateKey   String // YYYY-MM-DD (calendar day of that occurrence)
+  createdAt DateTime    @default(now())
+
+  @@unique([habitId, dateKey])
+}
+
+model Goal {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("ACTIVE") // ACTIVE | COMPLETED
+  stages      Stage[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Stage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  goalId    String   @db.ObjectId
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  title     String
+  deadline  DateTime
+  status    String   @default("PENDING") // PENDING | COMPLETED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
