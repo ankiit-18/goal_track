@@ -44,6 +44,9 @@ export function GoalDetail({ initial }: Props) {
     toDatetimeLocalValue(new Date().toISOString())
   );
 
+  const [aiSteps, setAiSteps] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
   const sortedStages = useMemo(
     () =>
       [...goal.stages].sort(
@@ -163,6 +166,27 @@ export function GoalDetail({ initial }: Props) {
     }
   }
 
+  async function suggestBreakdown() {
+    setError(null);
+    setAiLoading(true);
+    setAiSteps(null);
+    try {
+      const res = await fetch("/api/ai-breakdown", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goal: goal.title }),
+      });
+      const data = (await res.json()) as { error?: string; steps?: string };
+      if (!res.ok) {
+        setError(typeof data.error === "string" ? data.error : "AI request failed");
+        return;
+      }
+      if (typeof data.steps === "string") setAiSteps(data.steps);
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-10">
       <div>
@@ -191,6 +215,32 @@ export function GoalDetail({ initial }: Props) {
           </span>
         </div>
         <ProgressBar value={goal.progress} />
+      </section>
+
+      <section className={cardClass}>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h2 className={sectionTitleClass}>AI breakdown</h2>
+          <button
+            type="button"
+            disabled={aiLoading || pending}
+            onClick={() => void suggestBreakdown()}
+            className={btnSecondaryClass}
+          >
+            {aiLoading ? "Generating…" : "Suggest steps"}
+          </button>
+        </div>
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+          Uses your goal title to propose actionable steps (configure{" "}
+          <code className="rounded bg-zinc-100 px-1 text-xs dark:bg-zinc-800">
+            OPENAI_API_KEY
+          </code>{" "}
+          on the server).
+        </p>
+        {aiSteps ? (
+          <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-4 text-sm leading-relaxed text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-200">
+            {aiSteps}
+          </pre>
+        ) : null}
       </section>
 
       <section>
@@ -314,28 +364,37 @@ export function GoalDetail({ initial }: Props) {
             No stages yet. Add milestones to drive your progress percentage.
           </p>
         ) : (
-          <ul className="space-y-3">
+          <ul className="space-y-4">
             {sortedStages.map((s) => (
               <li
                 key={s.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white/80 px-4 py-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50"
+                className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-white p-4 shadow dark:bg-zinc-900"
               >
-                <div className="min-w-0">
-                  <p
-                    className={`font-semibold ${
-                      s.status === "COMPLETED"
-                        ? "text-zinc-400 line-through dark:text-zinc-500"
-                        : "text-zinc-900 dark:text-zinc-50"
-                    }`}
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span
+                    className="text-xl leading-none"
+                    aria-hidden
+                    title={s.status === "COMPLETED" ? "Done" : "Pending"}
                   >
-                    {s.title}
-                  </p>
-                  <p className="mt-0.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                    {new Date(s.deadline).toLocaleString(undefined, {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
-                  </p>
+                    {s.status === "COMPLETED" ? "✅" : "⏳"}
+                  </span>
+                  <div className="min-w-0">
+                    <p
+                      className={`font-semibold ${
+                        s.status === "COMPLETED"
+                          ? "text-zinc-400 line-through dark:text-zinc-500"
+                          : "text-zinc-900 dark:text-zinc-50"
+                      }`}
+                    >
+                      {s.title}
+                    </p>
+                    <p className="mt-0.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                      {new Date(s.deadline).toLocaleString(undefined, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {s.status === "PENDING" ? (

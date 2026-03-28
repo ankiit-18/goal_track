@@ -1,4 +1,4 @@
-import { AppNav } from "@/components/AppNav";
+import Sidebar from "@/components/Sidebar";
 
 export default function AppLayout({
   children,
@@ -6,11 +6,11 @@ export default function AppLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
-      <AppNav />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
-        {children}
+    <div className="flex min-h-screen bg-gray-50 dark:bg-zinc-950">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto p-6">
+        <div className="mx-auto max-w-6xl">{children}</div>
       </main>
-    </>
+    </div>
   );
 }

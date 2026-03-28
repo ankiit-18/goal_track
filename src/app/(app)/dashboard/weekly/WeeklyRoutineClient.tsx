@@ -237,7 +237,7 @@ export function WeeklyRoutineClient() {
           Loading your week…
         </p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 xl:items-stretch">
           {weekKeys.map((dateKey, i) => {
             const dow = i + 1;
             const dayHabits = habits.filter((h) => h.weekday === dow);
@@ -245,39 +245,51 @@ export function WeeklyRoutineClient() {
             return (
               <div
                 key={dateKey}
-                className={`relative overflow-hidden rounded-2xl border bg-white/90 shadow-sm dark:bg-zinc-900/60 ${
+                className={`flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-white shadow-md dark:bg-zinc-900 ${
                   isToday
-                    ? "border-emerald-400/60 ring-2 ring-emerald-500/25 dark:border-emerald-500/40"
-                    : "border-zinc-200/80 dark:border-zinc-800"
+                    ? "border-emerald-400 ring-2 ring-emerald-500/20 dark:border-emerald-500/50"
+                    : "border-zinc-200/90 dark:border-zinc-700"
                 }`}
               >
                 <div
-                  className={`h-1 w-full ${isToday ? "bg-gradient-to-r from-emerald-400 to-teal-500" : "bg-zinc-200 dark:bg-zinc-700"}`}
-                  aria-hidden
-                />
-                <div className="p-3.5">
-                  <div className="border-b border-zinc-100 pb-3 dark:border-zinc-800">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  className={`shrink-0 px-4 py-3 ${
+                    isToday
+                      ? "bg-gradient-to-br from-emerald-500/10 to-teal-500/5 dark:from-emerald-500/15 dark:to-transparent"
+                      : "bg-zinc-50/90 dark:bg-zinc-800/40"
+                  }`}
+                >
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="text-sm font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
                       {WEEKDAY_SHORT[i]}
                     </p>
-                    <p className="mt-0.5 text-base font-semibold tabular-nums text-zinc-900 dark:text-white">
-                      {formatDateKeyShort(dateKey)}
-                    </p>
+                    {isToday ? (
+                      <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-300">
+                        Today
+                      </span>
+                    ) : null}
                   </div>
-                  <ul className="mt-3 space-y-2.5">
-                    {dayHabits.length === 0 ? (
-                      <li className="py-2 text-center text-xs text-zinc-400 dark:text-zinc-500">
-                        Free day
-                      </li>
-                    ) : (
-                      dayHabits.map((h) => {
-                        const done = h.completionDateKeys.includes(dateKey);
-                        return (
-                          <li
-                            key={h.id}
-                            className="rounded-xl bg-zinc-50/90 p-2 dark:bg-zinc-800/50"
+                  <p className="mt-1 text-lg font-semibold tabular-nums leading-tight text-zinc-900 dark:text-white">
+                    {formatDateKeyShort(dateKey)}
+                  </p>
+                </div>
+                <ul className="flex min-h-[4.5rem] flex-1 flex-col gap-2 border-t border-zinc-100 p-3 dark:border-zinc-800/80">
+                  {dayHabits.length === 0 ? (
+                    <li className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-zinc-200 py-6 text-center text-xs text-zinc-400 dark:border-zinc-700 dark:text-zinc-500">
+                      Nothing scheduled
+                    </li>
+                  ) : (
+                    dayHabits.map((h) => {
+                      const done = h.completionDateKeys.includes(dateKey);
+                      return (
+                        <li key={h.id}>
+                          <div
+                            className={`rounded-xl border p-3 transition dark:border-zinc-700/90 ${
+                              done
+                                ? "border-emerald-200/80 bg-emerald-50/50 dark:border-emerald-900/40 dark:bg-emerald-950/20"
+                                : "border-zinc-200/80 bg-zinc-50/50 dark:border-zinc-700 dark:bg-zinc-800/30"
+                            }`}
                           >
-                            <label className="flex cursor-pointer items-start gap-2.5 text-sm">
+                            <label className="flex cursor-pointer gap-3">
                               <input
                                 type="checkbox"
                                 checked={done}
@@ -285,32 +297,34 @@ export function WeeklyRoutineClient() {
                                 onChange={() =>
                                   void toggleCompletion(h.id, dateKey)
                                 }
-                                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+                                className="mt-0.5 h-[1.125rem] w-[1.125rem] shrink-0 rounded-md border-zinc-300 text-emerald-600 focus:ring-2 focus:ring-emerald-500/30 dark:border-zinc-600"
                               />
                               <span
-                                className={`font-medium leading-snug ${
+                                className={`min-w-0 flex-1 text-sm font-semibold leading-snug break-words ${
                                   done
-                                    ? "text-zinc-400 line-through dark:text-zinc-500"
-                                    : "text-zinc-800 dark:text-zinc-100"
+                                    ? "text-zinc-500 line-through decoration-zinc-400 dark:text-zinc-500"
+                                    : "text-zinc-900 dark:text-zinc-100"
                                 }`}
                               >
                                 {h.title}
                               </span>
                             </label>
-                            <button
-                              type="button"
-                              disabled={pending}
-                              onClick={() => void removeHabit(h.id)}
-                              className="mt-1.5 pl-7 text-[11px] font-medium text-red-600 hover:underline dark:text-red-400"
-                            >
-                              Remove
-                            </button>
-                          </li>
-                        );
-                      })
-                    )}
-                  </ul>
-                </div>
+                            <div className="mt-2 flex justify-end border-t border-zinc-100/80 pt-2 dark:border-zinc-700/50">
+                              <button
+                                type="button"
+                                disabled={pending}
+                                onClick={() => void removeHabit(h.id)}
+                                className="text-xs font-medium text-red-600 hover:underline dark:text-red-400"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </li>
+                      );
+                    })
+                  )}
+                </ul>
               </div>
             );
           })}

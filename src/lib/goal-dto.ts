@@ -13,7 +13,7 @@ export function serializeGoal(g: GoalWithStages) {
     endDate: g.endDate.toISOString(),
     status: g.status,
     progress,
-    stages: g.stages.map((s) => ({
+    stages: g.stages.map((s: Stage) => ({
       id: s.id,
       title: s.title,
       deadline: s.deadline.toISOString(),

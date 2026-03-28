@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getUserIdFromCookies } from "@/lib/api-auth";
@@ -6,13 +7,13 @@ import { isMongoObjectIdString } from "@/lib/mongo-id";
 
 export const runtime = "nodejs";
 
+const dateKeyRegex = /^\d{4}-\d{2}-\d{2}$/;
+
 const createSchema = z.object({
   weekday: z.coerce.number().int().min(1).max(7),
   title: z.string().min(1).max(200),
   sortOrder: z.coerce.number().int().optional(),
 });
-
-const dateKeyRegex = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function GET(request: Request) {
   try {
@@ -46,7 +47,9 @@ export async function GET(request: Request) {
       );
     }
 
-    const habits = await prisma.weeklyHabit.findMany({
+    const habits: Prisma.WeeklyHabitGetPayload<{
+      include: { completions: true };
+    }>[] = await prisma.weeklyHabit.findMany({
       where: { userId },
       orderBy: [{ weekday: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }],
       include: {
@@ -101,58 +104,35 @@ export async function POST(request: Request) {
     const parsed = createSchema.safeParse(json);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.flatten().fieldErrors },
+        { error: "Invalid input", detail: parsed.error.message },
         { status: 400 }
       );
     }
 
-    const account = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true },
-    });
-    if (!account) {
-      return NextResponse.json(
-        { error: "Account not found. Please sign in again." },
-        { status: 401 }
-      );
-    }
-
-    const weekday = Math.trunc(parsed.data.weekday);
-    const sortOrder = Math.trunc(parsed.data.sortOrder ?? 0);
-
     const habit = await prisma.weeklyHabit.create({
       data: {
-        weekday,
-        title: parsed.data.title.trim(),
-        sortOrder,
-        user: { connect: { id: userId } },
+        userId,
+        weekday: parsed.data.weekday,
+        title: parsed.data.title,
+        ...(parsed.data.sortOrder !== undefined && {
+          sortOrder: parsed.data.sortOrder,
+        }),
       },
     });
 
-    return NextResponse.json(
-      {
-        habit: {
-          id: habit.id,
-          weekday: habit.weekday,
-          title: habit.title,
-          sortOrder: habit.sortOrder,
-          createdAt: habit.createdAt.toISOString(),
-          completionDateKeys: [] as string[],
-        },
+    return NextResponse.json({
+      habit: {
+        id: habit.id,
+        weekday: habit.weekday,
+        title: habit.title,
+        sortOrder: habit.sortOrder,
+        createdAt: habit.createdAt.toISOString(),
       },
-      { status: 201 }
-    );
+    });
   } catch (e) {
     console.error("[weekly-habits POST]", e);
-    const detail =
-      process.env.NODE_ENV === "development" && e instanceof Error
-        ? e.message
-        : undefined;
     return NextResponse.json(
-      {
-        error: "Server error creating weekly habit",
-        ...(detail ? { detail } : {}),
-      },
+      { error: "Server error creating habit" },
       { status: 500 }
     );
   }

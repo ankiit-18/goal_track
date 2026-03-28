@@ -1,16 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { goalProgressPercent } from "@/lib/progress";
-import { ProgressBar } from "@/components/ProgressBar";
 import { DashboardNav } from "@/components/DashboardNav";
+import GoalCard from "@/components/GoalCard";
 import {
   btnPrimaryClass,
   cardClass,
   cardMutedClass,
   sectionTitleClass,
 } from "@/lib/ui-styles";
+
+type GoalWithStages = Prisma.GoalGetPayload<{ include: { stages: true } }>;
 
 function startOfToday() {
   const n = new Date();
@@ -21,7 +24,7 @@ export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const goals = await prisma.goal.findMany({
+  const goals: GoalWithStages[] = await prisma.goal.findMany({
     where: { userId: session.userId },
     include: { stages: true },
     orderBy: { updatedAt: "desc" },
@@ -32,8 +35,11 @@ export default async function DashboardPage() {
   const upcomingStages = goals
     .flatMap((g) =>
       g.stages
-        .filter((s) => s.status === "PENDING" && s.deadline >= today)
-        .map((s) => ({
+        .filter(
+          (s: GoalWithStages["stages"][number]) =>
+            s.status === "PENDING" && s.deadline >= today
+        )
+        .map((s: GoalWithStages["stages"][number]) => ({
           stageId: s.id,
           title: s.title,
           deadline: s.deadline,
@@ -44,49 +50,50 @@ export default async function DashboardPage() {
     .sort((a, b) => a.deadline.getTime() - b.deadline.getTime())
     .slice(0, 12);
 
-  const activeCount = goals.filter((g) => g.status === "ACTIVE").length;
   const doneCount = goals.filter((g) => g.status === "COMPLETED").length;
+  const pendingCount = goals.filter((g) => g.status !== "COMPLETED").length;
 
   return (
     <div className="space-y-10">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
         <DashboardNav />
-        <div className="flex gap-3 sm:pt-1">
-          <div className="rounded-xl border border-zinc-200/80 bg-white/60 px-4 py-2 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
-            <p className="text-2xl font-bold tabular-nums text-zinc-900 dark:text-white">
-              {goals.length}
-            </p>
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              Goals
-            </p>
-          </div>
-          <div className="rounded-xl border border-zinc-200/80 bg-white/60 px-4 py-2 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
-            <p className="text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-              {activeCount}
-            </p>
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              Active
-            </p>
-          </div>
-          <div className="rounded-xl border border-zinc-200/80 bg-white/60 px-4 py-2 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
-            <p className="text-2xl font-bold tabular-nums text-zinc-600 dark:text-zinc-300">
-              {doneCount}
-            </p>
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              Done
-            </p>
-          </div>
-        </div>
       </div>
 
       <header className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-          Long-term goals
+        <h1 className="mb-2 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+          Dashboard
         </h1>
         <p className="max-w-2xl text-base text-zinc-600 dark:text-zinc-400">
           Milestones, deadlines, and progress in one calm overview.
         </p>
       </header>
+
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-2xl bg-white p-4 shadow-md dark:bg-zinc-900 dark:shadow-none">
+          <p className="text-sm text-gray-600 dark:text-zinc-400">
+            <span className="font-medium">Total goals:</span>{" "}
+            <span className="text-lg font-bold tabular-nums text-gray-900 dark:text-white">
+              {goals.length}
+            </span>
+          </p>
+        </div>
+        <div className="rounded-2xl bg-white p-4 shadow-md dark:bg-zinc-900 dark:shadow-none">
+          <p className="text-sm text-gray-600 dark:text-zinc-400">
+            <span className="font-medium">Completed:</span>{" "}
+            <span className="text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+              {doneCount}
+            </span>
+          </p>
+        </div>
+        <div className="rounded-2xl bg-white p-4 shadow-md dark:bg-zinc-900 dark:shadow-none">
+          <p className="text-sm text-gray-600 dark:text-zinc-400">
+            <span className="font-medium">Pending:</span>{" "}
+            <span className="text-lg font-bold tabular-nums text-gray-800 dark:text-zinc-300">
+              {pendingCount}
+            </span>
+          </p>
+        </div>
+      </div>
 
       <section className={cardClass}>
         <div className="flex items-center gap-2">
@@ -173,55 +180,23 @@ export default async function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {goals.map((g) => {
               const progress = goalProgressPercent(g.stages);
               return (
-                <li key={g.id}>
-                  <Link
-                    href={`/goals/${g.id}`}
-                    className={`${cardClass} group block transition hover:border-emerald-300/60 hover:shadow-md hover:shadow-emerald-900/5 dark:hover:border-emerald-700/40`}
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-emerald-800 dark:text-white dark:group-hover:text-emerald-300">
-                          {g.title}
-                        </h3>
-                        {g.description ? (
-                          <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                            {g.description}
-                          </p>
-                        ) : null}
-                      </div>
-                      <span
-                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
-                          g.status === "COMPLETED"
-                            ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300"
-                            : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                        }`}
-                      >
-                        {g.status === "COMPLETED" ? "Completed" : "Active"}
-                      </span>
-                    </div>
-                    <div className="mt-5">
-                      <div className="mb-2 flex justify-between text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                        <span>Progress</span>
-                        <span className="tabular-nums text-zinc-700 dark:text-zinc-300">
-                          {progress}%
-                        </span>
-                      </div>
-                      <ProgressBar value={progress} />
-                    </div>
-                    <p className="mt-4 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                      <span className="inline-block h-1 w-1 rounded-full bg-zinc-300 dark:bg-zinc-600" />
-                      {g.startDate.toLocaleDateString()} →{" "}
-                      {g.endDate.toLocaleDateString()}
-                    </p>
-                  </Link>
-                </li>
+                <GoalCard
+                  key={g.id}
+                  href={`/goals/${g.id}`}
+                  title={g.title}
+                  description={g.description}
+                  progress={progress}
+                  status={g.status as "ACTIVE" | "COMPLETED"}
+                  startDateLabel={g.startDate.toLocaleDateString()}
+                  endDateLabel={g.endDate.toLocaleDateString()}
+                />
               );
             })}
-          </ul>
+          </div>
         )}
       </section>
     </div>

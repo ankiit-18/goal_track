@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@prisma/client"],
+  // Prisma 7 + Turbopack: bundling @prisma/client avoids stale `runtime/library.js` resolution.
 };
 
 export default nextConfig;
