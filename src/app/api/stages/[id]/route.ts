@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getUserIdFromCookies } from "@/lib/api-auth";
 import { serializeGoal } from "@/lib/goal-dto";
+import { deriveGoalStatusFromStages } from "@/lib/goal-status";
 
 const patchSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -62,7 +63,15 @@ export async function PATCH(request: Request, context: RouteContext) {
     include: { stages: { orderBy: { deadline: "asc" } } },
   });
 
-  return NextResponse.json({ goal: serializeGoal(goal) });
+  const syncedGoal = await prisma.goal.update({
+    where: { id: stage.goalId },
+    data: {
+      status: deriveGoalStatusFromStages(goal.stages),
+    },
+    include: { stages: { orderBy: { deadline: "asc" } } },
+  });
+
+  return NextResponse.json({ goal: serializeGoal(syncedGoal) });
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
@@ -85,5 +94,13 @@ export async function DELETE(_request: Request, context: RouteContext) {
     include: { stages: { orderBy: { deadline: "asc" } } },
   });
 
-  return NextResponse.json({ goal: serializeGoal(goal) });
+  const syncedGoal = await prisma.goal.update({
+    where: { id: goalId },
+    data: {
+      status: deriveGoalStatusFromStages(goal.stages),
+    },
+    include: { stages: { orderBy: { deadline: "asc" } } },
+  });
+
+  return NextResponse.json({ goal: serializeGoal(syncedGoal) });
 }

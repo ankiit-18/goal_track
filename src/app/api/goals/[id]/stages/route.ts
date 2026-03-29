@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getUserIdFromCookies } from "@/lib/api-auth";
 import { serializeGoal } from "@/lib/goal-dto";
+import { deriveGoalStatusFromStages } from "@/lib/goal-status";
 
 const createSchema = z.object({
   title: z.string().min(1).max(200),
@@ -51,5 +52,13 @@ export async function POST(request: Request, context: RouteContext) {
     include: { stages: { orderBy: { deadline: "asc" } } },
   });
 
-  return NextResponse.json({ goal: serializeGoal(updated) }, { status: 201 });
+  const syncedGoal = await prisma.goal.update({
+    where: { id: goalId },
+    data: {
+      status: deriveGoalStatusFromStages(updated.stages),
+    },
+    include: { stages: { orderBy: { deadline: "asc" } } },
+  });
+
+  return NextResponse.json({ goal: serializeGoal(syncedGoal) }, { status: 201 });
 }
