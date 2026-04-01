@@ -133,6 +133,17 @@ export async function consumeEmailVerificationCode(input: {
     });
     return { ok: false as const, error: "The code you entered is incorrect" };
   }
+
+  const consumedAt = new Date();
+  await prisma.emailVerificationCode.update({
+    where: { id: latestUnconsumed.id },
+    data: { consumedAt },
+  });
+  return {
+    ok: true as const,
+    userId: latestUnconsumed.userId,
+    consumedAt,
+  };
 }
 
 export function getResendCooldownSeconds() {
