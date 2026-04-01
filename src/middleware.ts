@@ -6,7 +6,10 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get(getCookieName())?.value;
   const pathname = request.nextUrl.pathname;
 
-  const isAuthPage = pathname === "/login" || pathname === "/register";
+  const isAuthPage =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/verify-email";
   const isProtected =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/goals") ||
@@ -40,5 +43,6 @@ export const config = {
     "/profile/:path*",
     "/login",
     "/register",
+    "/verify-email",
   ],
 };

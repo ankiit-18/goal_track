@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Compass,
+  GraduationCap,
   LayoutGrid,
   LogOut,
   PlusCircle,
@@ -15,13 +16,11 @@ import { cn } from "@/lib/utils";
 function NavLink({
   href,
   label,
-  helper,
   icon,
   active,
 }: {
   href: string;
   label: string;
-  helper: string;
   icon: React.ReactNode;
   active: boolean;
 }) {
@@ -29,28 +28,21 @@ function NavLink({
     <Link
       href={href}
       className={cn(
-        "group relative flex items-center gap-3 overflow-hidden rounded-[22px] border px-3.5 py-3 transition",
+        "flex items-center gap-4 rounded-[20px] px-5 py-4 text-[15px] font-medium transition",
         active
-          ? "border-white/15 bg-white/12 text-white shadow-[0_18px_45px_-30px_rgba(0,0,0,0.8)]"
-          : "border-transparent text-zinc-400 hover:border-white/10 hover:bg-white/6 hover:text-white"
+          ? "bg-[#edf1ea] text-emerald-800"
+          : "text-zinc-700 hover:bg-zinc-100/80 hover:text-zinc-950"
       )}
     >
       <span
         className={cn(
-          "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition",
-          active
-            ? "bg-white text-zinc-950"
-            : "bg-white/6 text-zinc-300 group-hover:bg-white/10 group-hover:text-white"
+          "flex h-10 w-10 items-center justify-center rounded-2xl",
+          active ? "bg-white text-emerald-700 shadow-sm" : "text-zinc-600"
         )}
       >
         {icon}
       </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-semibold">{label}</span>
-        <span className="mt-0.5 block truncate text-xs text-zinc-500 group-hover:text-zinc-400">
-          {helper}
-        </span>
-      </span>
+      <span>{label}</span>
     </Link>
   );
 }
@@ -72,91 +64,87 @@ export default function Sidebar() {
   const isWeekly = pathname === "/dashboard/weekly";
   const isNew = pathname === "/goals/new";
   const isProfile = pathname.startsWith("/profile");
+  const isHowItWorks = pathname === "/how-it-works";
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-80 shrink-0 overflow-hidden border-r border-white/10 bg-[linear-gradient(180deg,#050816_0%,#0b1322_46%,#081018_100%)] text-white lg:flex">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.18),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.16),transparent_28%),radial-gradient(circle_at_top_right,rgba(245,158,11,0.12),transparent_26%)]" />
-
-      <div className="relative flex w-full flex-col p-5">
-        <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur">
+    <aside className="sticky top-0 hidden h-screen w-[300px] shrink-0 border-r border-zinc-200 bg-[#fbfcf8] lg:flex">
+      <div className="flex w-full flex-col">
+        <div className="px-10 pb-10 pt-14">
           <Link href="/dashboard" className="block">
-            <div className="flex items-start gap-4">
-              <span className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-white text-zinc-950 shadow-[0_18px_40px_-26px_rgba(255,255,255,0.75)]">
-                <Target className="h-7 w-7" />
-              </span>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-emerald-300">
-                  GoalTrack
-                </p>
-                <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-                  Plan with clarity
-                </h1>
-                <p className="mt-2 max-w-[14rem] text-sm leading-6 text-zinc-400">
-                  A calm space for long-term goals, weekly rhythm, and daily
-                  progress.
-                </p>
-              </div>
-            </div>
+            <h1 className="font-heading text-[2.2rem] leading-none tracking-[-0.05em] text-emerald-700">
+              GoalTrack
+            </h1>
+            <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.28em] text-zinc-500">
+              Digital curator
+            </p>
           </Link>
         </div>
 
-        <div className="mt-6 rounded-[28px] border border-white/10 bg-white/[0.03] p-3 backdrop-blur">
+        <div className="px-5">
           <nav className="space-y-2" aria-label="Primary">
             <NavLink
               href="/dashboard"
-              label="Dashboard"
-              helper="Long-term overview"
+              label="Overview"
               icon={<LayoutGrid className="h-5 w-5" />}
               active={isDashboard}
             />
             <NavLink
               href="/goals"
-              label="Goals"
-              helper="Browse every goal"
+              label="Long-term goals"
               icon={<Target className="h-5 w-5" />}
               active={isGoals}
             />
             <NavLink
               href="/dashboard/weekly"
               label="Weekly routine"
-              helper="See your weekly system"
               icon={<Compass className="h-5 w-5" />}
               active={isWeekly}
             />
             <NavLink
-              href="/goals/new"
-              label="New goal"
-              helper="Create the next roadmap"
-              icon={<PlusCircle className="h-5 w-5" />}
-              active={isNew}
+              href="/how-it-works"
+              label="How it works"
+              icon={<GraduationCap className="h-5 w-5" />}
+              active={isHowItWorks}
             />
             <NavLink
-              href="/profile"
-              label="Profile"
-              helper="Account and preferences"
-              icon={<UserCircle2 className="h-5 w-5" />}
-              active={isProfile}
+              href="/goals/new"
+              label="New ambition"
+              icon={<PlusCircle className="h-5 w-5" />}
+              active={isNew}
             />
           </nav>
         </div>
 
-        <div className="mt-6 rounded-[28px] border border-emerald-400/15 bg-emerald-400/8 p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-300">
-            Focus note
+        <div className="mt-14 px-10">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-zinc-500">
+            Preferences
           </p>
-          <p className="mt-3 text-sm leading-7 text-zinc-300">
-            Great systems make hard goals feel lighter. Keep the next milestone
-            visible and the weekly actions small enough to repeat.
-          </p>
+          <div className="mt-4 space-y-2">
+            <NavLink
+              href="/profile"
+              label="Settings"
+              icon={<UserCircle2 className="h-5 w-5" />}
+              active={isProfile}
+            />
+          </div>
         </div>
 
-        <div className="mt-auto pt-6">
+        <div className="mt-auto flex items-center justify-between border-t border-zinc-200 px-8 py-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9bf2bf] text-xl font-semibold text-zinc-900">
+              GT
+            </div>
+            <div>
+              <p className="text-base font-semibold text-zinc-950">GoalTrack</p>
+              <p className="text-sm text-zinc-500">Calm workspace</p>
+            </div>
+          </div>
           <button
             type="button"
             onClick={() => void logout()}
-            className="flex w-full items-center justify-between rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-3 text-left text-sm font-semibold text-zinc-300 transition hover:border-white/15 hover:bg-white/[0.07] hover:text-white"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900"
+            aria-label="Log out"
           >
-            <span>Log out</span>
             <LogOut className="h-4 w-4" />
           </button>
         </div>

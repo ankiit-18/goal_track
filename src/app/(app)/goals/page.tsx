@@ -1,15 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Prisma } from "@prisma/client";
-import {
-  ArrowRight,
-  CalendarClock,
-  CheckCheck,
-  Layers3,
-  Plus,
-  Sparkles,
-  Target,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import GoalCard from "@/components/GoalCard";
 import { prisma } from "@/lib/prisma";
 import { goalProgressPercent } from "@/lib/progress";
@@ -17,11 +9,6 @@ import { getSession } from "@/lib/session";
 import { btnPrimaryClass, cardMutedClass } from "@/lib/ui-styles";
 
 type GoalWithStages = Prisma.GoalGetPayload<{ include: { stages: true } }>;
-
-function startOfToday() {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
 
 export default async function GoalsPage() {
   const session = await getSession();
@@ -33,7 +20,7 @@ export default async function GoalsPage() {
     orderBy: [{ updatedAt: "desc" }],
   });
 
-  const today = startOfToday();
+  const now = new Date();
   const activeGoals = goals.filter((goal) => goal.status !== "COMPLETED");
   const completedGoals = goals.filter((goal) => goal.status === "COMPLETED");
   const totalStages = goals.reduce((sum, goal) => sum + goal.stages.length, 0);
@@ -43,11 +30,13 @@ export default async function GoalsPage() {
     0
   );
 
-  const upcomingDeadlines = goals.reduce((count, goal) => {
+  const upcomingStages = goals.reduce((count, goal) => {
     return (
       count +
       goal.stages.filter(
-        (stage) => stage.status === "PENDING" && stage.deadline >= today
+        (stage) =>
+          stage.status === "PENDING" &&
+          new Date(stage.deadline).getTime() > now.getTime()
       ).length
     );
   }, 0);
@@ -61,159 +50,90 @@ export default async function GoalsPage() {
         );
 
   return (
-    <div className="space-y-8 pb-10">
-      <section className="relative overflow-hidden rounded-[36px] border border-white/70 bg-[linear-gradient(135deg,rgba(255,250,240,0.95),rgba(240,249,255,0.96))] p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.42)] dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(23,18,12,0.95),rgba(13,22,34,0.94))] sm:p-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.2),transparent_30%),radial-gradient(circle_at_left_center,rgba(59,130,246,0.15),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.16),transparent_28%)]" />
+    <div className="space-y-10 pb-14">
+      <section className="rounded-[34px] border border-zinc-200 bg-white px-8 py-10 shadow-[0_24px_60px_-44px_rgba(15,23,42,0.18)] lg:px-10">
+        <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
+          <div>
+            <h1 className="max-w-3xl font-heading text-6xl leading-[0.92] tracking-[-0.06em] text-zinc-950">
+              Every long-term goal,
+              <span className="block italic font-normal">organized in one place.</span>
+            </h1>
 
-        <div className="relative grid gap-8 xl:grid-cols-[1.25fr_0.75fr]">
-          <div className="space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-zinc-700 shadow-sm backdrop-blur dark:bg-white/10 dark:text-zinc-200">
-              <Sparkles className="h-3.5 w-3.5" />
-              Goals library
-            </div>
-
-            <div className="space-y-3">
-              <h1 className="font-heading text-4xl leading-tight text-zinc-950 dark:text-white sm:text-5xl">
-                Every long-term goal, organized in one place.
-              </h1>
-              <p className="max-w-2xl text-base leading-7 text-zinc-600 dark:text-zinc-300">
-                Review active plans, revisit completed wins, and open each goal
-                when you want to manage stages, deadlines, and progress.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Link href="/goals/new" className={`${btnPrimaryClass} gap-2`}>
-                <Plus className="h-4 w-4" />
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/goals/new" className={btnPrimaryClass + " px-5 py-3"}>
+                <Plus className="mr-2 h-4 w-4" />
                 Create goal
               </Link>
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 rounded-xl border border-zinc-300/70 bg-white/70 px-4 py-2.5 text-sm font-semibold text-zinc-800 backdrop-blur transition hover:bg-white dark:border-white/15 dark:bg-white/5 dark:text-zinc-100 dark:hover:bg-white/10"
+                className="inline-flex items-center rounded-xl px-4 py-3 text-sm font-medium text-emerald-800 transition hover:bg-zinc-50"
               >
                 Back to dashboard
-                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-            <div className="rounded-[28px] border border-white/70 bg-zinc-950 p-5 text-white dark:border-white/10">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500">
+          <div className="rounded-[22px] bg-[#f7f8f4] p-5">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
                 Portfolio progress
               </p>
-              <p className="mt-3 text-4xl font-semibold tracking-tight">
-                {averageProgress}%
-              </p>
-              <p className="mt-3 text-sm leading-6 text-zinc-300">
-                You&apos;ve completed {completedStages} of {totalStages} stages across
-                all goals.
-              </p>
+              <p className="text-lg font-semibold text-emerald-700">{averageProgress}%</p>
             </div>
-
-            <div className="rounded-[28px] border border-white/70 bg-white/80 p-5 backdrop-blur dark:border-white/10 dark:bg-white/5">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
-                Quick view
-              </p>
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                <div>
-                  <p className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-                    {activeGoals.length}
-                  </p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
-                    Active
-                  </p>
-                </div>
-                <div>
-                  <p className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-                    {completedGoals.length}
-                  </p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
-                    Closed
-                  </p>
-                </div>
-                <div>
-                  <p className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-                    {upcomingDeadlines}
-                  </p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
-                    Pending
-                  </p>
-                </div>
-              </div>
+            <div className="mt-4 h-1.5 rounded-full bg-zinc-200">
+              <div
+                className="h-1.5 rounded-full bg-emerald-700"
+                style={{ width: `${averageProgress}%` }}
+              />
             </div>
+            <p className="mt-4 text-sm leading-6 text-zinc-600">
+              You have completed {completedStages} of {totalStages} stages across
+              your long-term goals.
+            </p>
           </div>
         </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-[28px] border border-white/70 bg-white/80 p-5 shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)] backdrop-blur dark:border-white/10 dark:bg-zinc-900/70">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
-                Total goals
-              </p>
-              <p className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-                {goals.length}
-              </p>
-            </div>
-            <span className="rounded-2xl bg-sky-500/15 p-3 text-sky-700 dark:text-sky-300">
-              <Layers3 className="h-5 w-5" />
-            </span>
-          </div>
+        <article className="rounded-[20px] border border-zinc-200 bg-[#fafaf7] px-5 py-5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+            Total goals
+          </p>
+          <p className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-950">
+            {goals.length}
+          </p>
         </article>
 
-        <article className="rounded-[28px] border border-white/70 bg-white/80 p-5 shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)] backdrop-blur dark:border-white/10 dark:bg-zinc-900/70">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
-                Stages planned
-              </p>
-              <p className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-                {totalStages}
-              </p>
-            </div>
-            <span className="rounded-2xl bg-violet-500/15 p-3 text-violet-700 dark:text-violet-300">
-              <Target className="h-5 w-5" />
-            </span>
-          </div>
+        <article className="rounded-[20px] border border-zinc-200 bg-[#fafaf7] px-5 py-5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+            Stages planned
+          </p>
+          <p className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-950">
+            {totalStages}
+          </p>
         </article>
 
-        <article className="rounded-[28px] border border-white/70 bg-white/80 p-5 shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)] backdrop-blur dark:border-white/10 dark:bg-zinc-900/70">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
-                Completed stages
-              </p>
-              <p className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-                {completedStages}
-              </p>
-            </div>
-            <span className="rounded-2xl bg-emerald-500/15 p-3 text-emerald-700 dark:text-emerald-300">
-              <CheckCheck className="h-5 w-5" />
-            </span>
-          </div>
+        <article className="rounded-[20px] border border-zinc-200 bg-[#fafaf7] px-5 py-5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+            Completed stages
+          </p>
+          <p className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-950">
+            {completedStages}
+          </p>
         </article>
 
-        <article className="rounded-[28px] border border-white/70 bg-white/80 p-5 shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)] backdrop-blur dark:border-white/10 dark:bg-zinc-900/70">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
-                Future deadlines
-              </p>
-              <p className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-                {upcomingDeadlines}
-              </p>
-            </div>
-            <span className="rounded-2xl bg-amber-500/15 p-3 text-amber-700 dark:text-amber-300">
-              <CalendarClock className="h-5 w-5" />
-            </span>
-          </div>
+        <article className="rounded-[20px] border border-zinc-200 bg-[#fafaf7] px-5 py-5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+            Upcoming stages
+          </p>
+          <p className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-950">
+            {upcomingStages}
+          </p>
         </article>
       </section>
 
       {goals.length === 0 ? (
-        <section className={`${cardMutedClass} rounded-[32px] border-dashed text-center`}>
+        <section className={`${cardMutedClass} rounded-[28px] border-dashed text-center`}>
           <h2 className="font-heading text-3xl text-zinc-950 dark:text-white">
             No goals yet
           </h2>
@@ -229,19 +149,17 @@ export default async function GoalsPage() {
       ) : (
         <>
           <section className="space-y-5">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
-                  Active plans
-                </p>
-                <h2 className="mt-2 font-heading text-3xl text-zinc-950 dark:text-white">
-                  Goals in motion
-                </h2>
-              </div>
+            <div className="flex items-end gap-3">
+              <h2 className="font-heading text-4xl tracking-[-0.04em] text-zinc-950">
+                Active Plans
+              </h2>
+              <p className="pb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+                Goals in motion
+              </p>
             </div>
 
             {activeGoals.length === 0 ? (
-              <div className={`${cardMutedClass} rounded-[28px]`}>
+              <div className={`${cardMutedClass} rounded-[24px]`}>
                 <p className="text-sm leading-7 text-zinc-600 dark:text-zinc-400">
                   You don&apos;t have any active goals right now. Everything in your
                   library is marked complete.
@@ -262,8 +180,16 @@ export default async function GoalsPage() {
                       description={goal.description}
                       progress={goalProgressPercent(goal.stages)}
                       status={goal.status as "ACTIVE" | "COMPLETED"}
-                      startDateLabel={goal.startDate.toLocaleDateString()}
-                      endDateLabel={goal.endDate.toLocaleDateString()}
+                      startDateLabel={goal.startDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                      endDateLabel={goal.endDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                       stageCount={goal.stages.length}
                       completedStageCount={completedStageCount}
                     />
@@ -275,13 +201,13 @@ export default async function GoalsPage() {
 
           {completedGoals.length > 0 ? (
             <section className="space-y-5">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
+              <div className="flex items-end gap-3">
+                <h2 className="font-heading text-4xl tracking-[-0.04em] text-zinc-950">
                   Completed
-                </p>
-                <h2 className="mt-2 font-heading text-3xl text-zinc-950 dark:text-white">
-                  Finished goals
                 </h2>
+                <p className="pb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+                  Finished goals
+                </p>
               </div>
 
               <div className="grid gap-5 lg:grid-cols-2">
@@ -298,8 +224,16 @@ export default async function GoalsPage() {
                       description={goal.description}
                       progress={goalProgressPercent(goal.stages)}
                       status={goal.status as "ACTIVE" | "COMPLETED"}
-                      startDateLabel={goal.startDate.toLocaleDateString()}
-                      endDateLabel={goal.endDate.toLocaleDateString()}
+                      startDateLabel={goal.startDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                      endDateLabel={goal.endDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                       stageCount={goal.stages.length}
                       completedStageCount={completedStageCount}
                     />
@@ -310,6 +244,17 @@ export default async function GoalsPage() {
           ) : null}
         </>
       )}
+
+      <footer className="border-t border-zinc-200 pt-6 text-[11px] uppercase tracking-[0.18em] text-zinc-400">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p>© 2026 GoalTrack</p>
+          <div className="flex flex-wrap gap-5">
+            <span>Privacy policy</span>
+            <span>Terms of service</span>
+            <span>Help center</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

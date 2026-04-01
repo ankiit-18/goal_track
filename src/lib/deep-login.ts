@@ -8,6 +8,12 @@
 
 const DEEP_KEYS = ["challenge", "uuid", "mode"] as const;
 
+export function sanitizeNextPath(nextPath: string | null | undefined): string {
+  if (!nextPath || !nextPath.startsWith("/")) return "/dashboard";
+  if (nextPath.startsWith("//")) return "/dashboard";
+  return nextPath;
+}
+
 export function getDeepLoginParams(
   searchParams: URLSearchParams
 ): Partial<Record<(typeof DEEP_KEYS)[number], string>> {
@@ -47,8 +53,10 @@ export function registerHrefWithDeepParams(
   fromLoginPage: URLSearchParams
 ): string {
   const deep = getDeepLoginParams(fromLoginPage);
-  if (Object.keys(deep).length === 0) return "/register";
+  const next = sanitizeNextPath(fromLoginPage.get("next"));
+  if (Object.keys(deep).length === 0 && next === "/dashboard") return "/register";
   const q = new URLSearchParams();
+  if (next !== "/dashboard") q.set("next", next);
   for (const key of DEEP_KEYS) {
     const v = deep[key];
     if (v) q.set(key, v);
@@ -59,8 +67,10 @@ export function registerHrefWithDeepParams(
 /** Build /login?... preserving deep params (e.g. from register page). */
 export function loginHrefWithDeepParams(fromPage: URLSearchParams): string {
   const deep = getDeepLoginParams(fromPage);
-  if (Object.keys(deep).length === 0) return "/login";
+  const next = sanitizeNextPath(fromPage.get("next"));
+  if (Object.keys(deep).length === 0 && next === "/dashboard") return "/login";
   const q = new URLSearchParams();
+  if (next !== "/dashboard") q.set("next", next);
   for (const key of DEEP_KEYS) {
     const v = deep[key];
     if (v) q.set(key, v);

@@ -1,17 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import {
   createEmailVerificationCode,
   normalizeEmail,
 } from "@/lib/auth-email";
 import { sendVerificationCodeEmail } from "@/lib/email";
-import { hashPassword } from "@/lib/password";
+import { prisma } from "@/lib/prisma";
 
 const bodySchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  name: z.string().max(120).optional(),
 });
 
 export async function POST(request: Request) {
@@ -31,33 +28,28 @@ export async function POST(request: Request) {
   }
 
   const email = normalizeEmail(parsed.data.email);
-  const { password, name } = parsed.data;
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing?.emailVerifiedAt) {
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
     return NextResponse.json(
-      { error: "An account with this email already exists" },
-      { status: 409 }
+      { error: "No account was found for this email" },
+      { status: 404 }
     );
   }
 
-  const passwordHash = await hashPassword(password);
-  const user = existing
-    ? await prisma.user.update({
-        where: { id: existing.id },
-        data: {
-          passwordHash,
-          name: name ?? null,
-        },
-      })
-    : await prisma.user.create({
-        data: { email, passwordHash, name: name ?? null },
-      });
+  if (user.emailVerifiedAt) {
+    return NextResponse.json(
+      { error: "This email is already verified" },
+      { status: 400 }
+    );
+  }
 
   const codeResult = await createEmailVerificationCode({
     email,
     purpose: "SIGNUP",
     userId: user.id,
   });
+
   if (!codeResult.ok) {
     return NextResponse.json(
       {
@@ -81,8 +73,5 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({
-    requiresVerification: true,
-    email,
-  });
+  return NextResponse.json({ ok: true });
 }

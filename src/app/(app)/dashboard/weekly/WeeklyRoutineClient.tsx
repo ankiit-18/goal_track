@@ -1,27 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  CircleDashed,
-  Plus,
-  Sparkles,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, Trash2 } from "lucide-react";
 import { readResponseJson } from "@/lib/fetch-json";
 import {
   btnPrimaryClass,
   btnSecondaryClass,
-  cardClass,
   cardMutedClass,
   inputClass,
   labelClass,
 } from "@/lib/ui-styles";
 import {
   addWeeksToMondayKey,
-  formatDateKeyShort,
+  formatDateKeyFull,
   formatWeekRangeLabel,
   mondayKeyLocal,
   weekKeysFromMonday,
@@ -29,6 +20,15 @@ import {
 
 const fetchOpts: RequestInit = { credentials: "include" };
 const WEEKDAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEKDAY_LONG = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 type HabitRow = {
   id: string;
@@ -198,90 +198,85 @@ export function WeeklyRoutineClient() {
 
   const totalSlots = habits.length;
   const completedCount = habits.reduce((count, habit) => {
-    return count + weekKeys.filter((dateKey) => habit.completionDateKeys.includes(dateKey)).length;
+    return (
+      count +
+      weekKeys.filter((dateKey) => habit.completionDateKeys.includes(dateKey)).length
+    );
   }, 0);
-  const completionRate = totalSlots === 0 ? 0 : Math.round((completedCount / totalSlots) * 100);
-  const todayHabits = habits.filter((habit) => {
-    const dayIndex = weekKeys.indexOf(todayKey);
-    return dayIndex >= 0 && habit.weekday === dayIndex + 1;
-  });
+  const completionRate =
+    totalSlots === 0 ? 0 : Math.round((completedCount / totalSlots) * 100);
 
   return (
-    <div className="space-y-6">
-      <section className={`${cardClass} overflow-hidden rounded-[32px] border-white/70 bg-white/80 p-0 dark:border-white/10 dark:bg-zinc-900/70`}>
-        <div className="grid gap-0 xl:grid-cols-[1.2fr_0.8fr]">
-          <div className="border-b border-zinc-200/70 p-6 dark:border-white/10 xl:border-b-0 xl:border-r">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
-                  Selected week
-                </p>
-                <h2 className="mt-2 font-heading text-3xl text-zinc-950 dark:text-white">
-                  {rangeLabel}
-                </h2>
-                <p className="mt-2 max-w-xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-                  Review the whole week at once, or jump backward and forward to
-                  compare your rhythm over time.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() => setWeekOffset((offset) => offset - 1)}
-                  className={`${btnSecondaryClass} gap-2 px-3 py-2 text-sm`}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  disabled={pending || weekOffset === 0}
-                  onClick={() => setWeekOffset(0)}
-                  className={`${btnSecondaryClass} px-3 py-2 text-sm disabled:opacity-40`}
-                >
-                  This week
-                </button>
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() => setWeekOffset((offset) => offset + 1)}
-                  className={`${btnSecondaryClass} gap-2 px-3 py-2 text-sm`}
-                >
-                  Next
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+    <div className="space-y-8">
+      <section className="rounded-[28px] border border-zinc-200 bg-white p-6 shadow-[0_22px_55px_-42px_rgba(15,23,42,0.16)]">
+        <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+              Selected week
+            </p>
+            <h2 className="mt-3 font-heading text-4xl tracking-[-0.04em] text-zinc-950">
+              {rangeLabel}
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-600">
+              Move backward or forward to review a full week of recurring habits.
+            </p>
           </div>
 
-          <div className="grid gap-px bg-zinc-200/70 dark:bg-white/10 sm:grid-cols-3 xl:grid-cols-3">
-            <div className="bg-white/85 p-5 dark:bg-zinc-950/40">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-[20px] border border-zinc-200 bg-[#fafaf7] px-5 py-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
                 Weekly habits
               </p>
-              <p className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+              <p className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-950">
                 {habits.length}
               </p>
             </div>
-            <div className="bg-white/85 p-5 dark:bg-zinc-950/40">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
+            <div className="rounded-[20px] border border-zinc-200 bg-[#fafaf7] px-5 py-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
                 Check-ins done
               </p>
-              <p className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+              <p className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-950">
                 {completedCount}
               </p>
             </div>
-            <div className="bg-white/85 p-5 dark:bg-zinc-950/40">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
+            <div className="rounded-[20px] border border-zinc-200 bg-[#fafaf7] px-5 py-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
                 Weekly score
               </p>
-              <p className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+              <p className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-zinc-950">
                 {completionRate}%
               </p>
             </div>
           </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => setWeekOffset((offset) => offset - 1)}
+            className={`${btnSecondaryClass} gap-2 px-3 py-2 text-sm`}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Previous
+          </button>
+          <button
+            type="button"
+            disabled={pending || weekOffset === 0}
+            onClick={() => setWeekOffset(0)}
+            className={`${btnSecondaryClass} px-3 py-2 text-sm disabled:opacity-40`}
+          >
+            This week
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => setWeekOffset((offset) => offset + 1)}
+            className={`${btnSecondaryClass} gap-2 px-3 py-2 text-sm`}
+          >
+            Next
+            <ArrowRight className="h-4 w-4" />
+          </button>
         </div>
       </section>
 
@@ -291,253 +286,145 @@ export function WeeklyRoutineClient() {
         </p>
       ) : null}
 
-      <section className="grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
-        <div className="rounded-[32px] border border-white/70 bg-zinc-950 p-6 text-white shadow-[0_22px_60px_-34px_rgba(0,0,0,0.85)] dark:border-white/10">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500">
-                Today&apos;s pulse
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-                Daily focus
-              </h2>
-            </div>
-            <span className="rounded-2xl bg-white/10 p-3 text-emerald-300">
-              <Sparkles className="h-5 w-5" />
-            </span>
-          </div>
-
-          {weekKeys.includes(todayKey) ? (
-            <div className="mt-6 space-y-3">
-              {todayHabits.length === 0 ? (
-                <p className="text-sm leading-7 text-zinc-400">
-                  Nothing is scheduled for today. Add a recurring habit below if
-                  you want a lighter routine to stay visible.
-                </p>
-              ) : (
-                todayHabits.map((habit) => {
-                  const done = habit.completionDateKeys.includes(todayKey);
-                  return (
-                    <div
-                      key={habit.id}
-                      className={`rounded-2xl border p-4 ${
-                        done
-                          ? "border-emerald-500/30 bg-emerald-500/10"
-                          : "border-white/10 bg-white/5"
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span
-                          className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-xl ${
-                            done
-                              ? "bg-emerald-400 text-zinc-950"
-                              : "bg-white/10 text-zinc-300"
-                          }`}
-                        >
-                          {done ? (
-                            <Check className="h-4 w-4" />
-                          ) : (
-                            <CircleDashed className="h-4 w-4" />
-                          )}
-                        </span>
-                        <div>
-                          <p className="font-semibold text-white">{habit.title}</p>
-                          <p className="mt-1 text-sm text-zinc-400">
-                            {done ? "Checked off for today." : "Still open for today."}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          ) : (
-            <p className="mt-6 text-sm leading-7 text-zinc-400">
-              You&apos;re viewing a different week, so today&apos;s focus is hidden
-              until you return to the current week.
+      <section className={cardMutedClass + " rounded-[28px]"}>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+              Add repeating habit
             </p>
-          )}
+            <h2 className="mt-2 font-heading text-4xl tracking-[-0.04em] text-zinc-950">
+              Build your weekly system
+            </h2>
+          </div>
         </div>
 
-        <section className={cardMutedClass + " rounded-[32px]"}>
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
-                Add repeating habit
-              </p>
-              <h2 className="mt-2 font-heading text-3xl text-zinc-950 dark:text-white">
-                Build your weekly system
-              </h2>
-            </div>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-600">
+          Assign a habit to one weekday and it will return every week in the daily board.
+        </p>
+
+        <form
+          onSubmit={(e) => void addHabit(e)}
+          className="mt-6 grid gap-4 lg:grid-cols-[1fr_180px_auto]"
+        >
+          <label className={`${labelClass} block`}>
+            Habit name
+            <input
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="e.g. Deep work, reading, strength training"
+              className={inputClass}
+            />
+          </label>
+
+          <label className={`${labelClass} block`}>
+            Weekday
+            <select
+              value={newWeekday}
+              onChange={(e) => setNewWeekday(Number(e.target.value))}
+              className={inputClass}
+            >
+              {WEEKDAY_LONG.map((label, index) => (
+                <option key={label} value={index + 1}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="flex items-end">
+            <button
+              type="submit"
+              disabled={pending}
+              className={`${btnPrimaryClass} w-full gap-2`}
+            >
+              <Plus className="h-4 w-4" />
+              Add habit
+            </button>
           </div>
-
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-            Pick the weekday where this habit belongs. It will appear every week
-            on that day, ready to be checked off.
-          </p>
-
-          <form
-            onSubmit={(e) => void addHabit(e)}
-            className="mt-6 grid gap-4 lg:grid-cols-[1fr_180px_auto]"
-          >
-            <label className={`${labelClass} block`}>
-              Habit name
-              <input
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="e.g. Deep work, 30 min reading, strength training"
-                className={inputClass}
-              />
-            </label>
-
-            <label className={`${labelClass} block`}>
-              Weekday
-              <select
-                value={newWeekday}
-                onChange={(e) => setNewWeekday(Number(e.target.value))}
-                className={inputClass}
-              >
-                {WEEKDAY_SHORT.map((label, index) => (
-                  <option key={label} value={index + 1}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <div className="flex items-end">
-              <button
-                type="submit"
-                disabled={pending}
-                className={`${btnPrimaryClass} w-full gap-2`}
-              >
-                <Plus className="h-4 w-4" />
-                Add habit
-              </button>
-            </div>
-          </form>
-        </section>
+        </form>
       </section>
 
       {loading ? (
-        <p className="py-8 text-center text-sm font-medium text-zinc-500 dark:text-zinc-400">
+        <p className="py-8 text-center text-sm font-medium text-zinc-500">
           Loading your week…
         </p>
       ) : (
-        <section className="space-y-4">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
-                Week at a glance
-              </p>
-              <h2 className="mt-2 font-heading text-3xl text-zinc-950 dark:text-white">
-                Daily board
-              </h2>
-            </div>
+        <section className="space-y-5">
+          <div className="flex items-end gap-3">
+            <h2 className="font-heading text-4xl tracking-[-0.04em] text-zinc-950">
+              Daily board
+            </h2>
+            <p className="pb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+              One clear card for each day
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-7">
+          <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
             {weekKeys.map((dateKey, index) => {
               const dow = index + 1;
               const dayHabits = habits.filter((habit) => habit.weekday === dow);
-              const doneCount = dayHabits.filter((habit) =>
-                habit.completionDateKeys.includes(dateKey)
-              ).length;
               const isToday = dateKey === todayKey;
 
               return (
                 <article
                   key={dateKey}
-                  className={`flex min-h-[18rem] flex-col overflow-hidden rounded-[28px] border bg-white/85 shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)] backdrop-blur dark:bg-zinc-900/75 ${
+                  className={`rounded-[28px] border bg-white px-6 py-6 shadow-[0_18px_45px_-40px_rgba(15,23,42,0.18)] ${
                     isToday
-                      ? "border-emerald-400/70 ring-2 ring-emerald-500/20 dark:border-emerald-500/50"
-                      : "border-white/70 dark:border-white/10"
+                      ? "border-emerald-300 bg-[#fbfdf8]"
+                      : "border-zinc-200"
                   }`}
                 >
-                  <div
-                    className={`border-b px-5 py-4 ${
-                      isToday
-                        ? "border-emerald-200 bg-[linear-gradient(135deg,rgba(16,185,129,0.12),rgba(45,212,191,0.06))] dark:border-emerald-500/20 dark:bg-[linear-gradient(135deg,rgba(16,185,129,0.16),rgba(45,212,191,0.04))]"
-                        : "border-zinc-200/70 bg-zinc-50/90 dark:border-white/10 dark:bg-zinc-950/30"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
-                          {WEEKDAY_SHORT[index]}
-                        </p>
-                        <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-                          {formatDateKeyShort(dateKey)}
-                        </p>
-                      </div>
-                      {isToday ? (
-                        <span className="rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-white">
-                          Today
-                        </span>
-                      ) : null}
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-zinc-500">
+                        {WEEKDAY_SHORT[index]}
+                      </p>
+                      <h3 className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-zinc-950">
+                        {formatDateKeyFull(dateKey).replace(",", "")}
+                      </h3>
                     </div>
-
-                    <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-                      {dayHabits.length === 0
-                        ? "Rest or flex day"
-                        : `${doneCount} of ${dayHabits.length} complete`}
-                    </p>
+                    {isToday ? (
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
+                        Today
+                      </span>
+                    ) : null}
                   </div>
 
-                  <ul className="flex flex-1 flex-col gap-3 p-4">
+                  <ul className="mt-8 space-y-5">
                     {dayHabits.length === 0 ? (
-                      <li className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/60 px-4 text-center text-sm text-zinc-400 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-500">
-                        Nothing scheduled
-                      </li>
+                      <li className="text-sm text-zinc-400">Nothing scheduled.</li>
                     ) : (
                       dayHabits.map((habit) => {
                         const done = habit.completionDateKeys.includes(dateKey);
                         return (
-                          <li key={habit.id}>
-                            <div
-                              className={`rounded-2xl border p-3 transition ${
-                                done
-                                  ? "border-emerald-200 bg-emerald-50/80 dark:border-emerald-500/20 dark:bg-emerald-500/10"
-                                  : "border-zinc-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04]"
-                              }`}
+                          <li key={habit.id} className="flex items-start gap-4">
+                            <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-4">
+                              <input
+                                type="checkbox"
+                                checked={done}
+                                disabled={pending}
+                                onChange={() => void toggleCompletion(habit.id, dateKey)}
+                                className="mt-1 h-7 w-7 shrink-0 rounded-full border-zinc-300 text-emerald-600 focus:ring-2 focus:ring-emerald-500/30"
+                              />
+                              <span
+                                className={`min-w-0 text-2xl leading-tight tracking-[-0.03em] ${
+                                  done
+                                    ? "text-zinc-400 line-through decoration-zinc-300"
+                                    : "text-zinc-900"
+                                }`}
+                              >
+                                {habit.title}
+                              </span>
+                            </label>
+                            <button
+                              type="button"
+                              disabled={pending}
+                              onClick={() => void removeHabit(habit.id)}
+                              className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-zinc-100 hover:text-rose-600"
+                              aria-label={`Remove ${habit.title}`}
                             >
-                              <div className="flex items-start gap-3">
-                                <input
-                                  type="checkbox"
-                                  checked={done}
-                                  disabled={pending}
-                                  onChange={() => void toggleCompletion(habit.id, dateKey)}
-                                  className="mt-1 h-[1.125rem] w-[1.125rem] shrink-0 rounded-md border-zinc-300 text-emerald-600 focus:ring-2 focus:ring-emerald-500/30 dark:border-zinc-600"
-                                />
-                                <div className="min-w-0 flex-1">
-                                  <p
-                                    className={`text-sm font-semibold leading-6 break-words ${
-                                      done
-                                        ? "text-zinc-500 line-through decoration-zinc-400 dark:text-zinc-400"
-                                        : "text-zinc-900 dark:text-zinc-100"
-                                    }`}
-                                  >
-                                    {habit.title}
-                                  </p>
-                                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
-                                    {done ? "Complete" : "Planned"}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="mt-3 flex justify-end border-t border-zinc-100 pt-3 dark:border-white/10">
-                                <button
-                                  type="button"
-                                  disabled={pending}
-                                  onClick={() => void removeHabit(habit.id)}
-                                  className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 transition hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                  Remove
-                                </button>
-                              </div>
-                            </div>
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           </li>
                         );
                       })

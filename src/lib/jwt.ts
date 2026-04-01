@@ -20,6 +20,17 @@ export async function signToken(userId: string): Promise<string> {
     .sign(getSecret());
 }
 
+export async function signShortLivedToken(
+  claims: Record<string, string>,
+  expirationTime: string
+): Promise<string> {
+  return new jose.SignJWT(claims)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(expirationTime)
+    .sign(getSecret());
+}
+
 export async function verifyToken(
   token: string
 ): Promise<{ sub: string } | null> {
@@ -28,6 +39,17 @@ export async function verifyToken(
     const sub = payload.sub;
     if (typeof sub !== "string") return null;
     return { sub };
+  } catch {
+    return null;
+  }
+}
+
+export async function verifyShortLivedToken(
+  token: string
+): Promise<Record<string, unknown> | null> {
+  try {
+    const { payload } = await jose.jwtVerify(token, getSecret());
+    return payload;
   } catch {
     return null;
   }
