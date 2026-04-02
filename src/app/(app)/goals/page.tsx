@@ -247,10 +247,13 @@ export default async function GoalsPage() {
 
       <footer className="border-t border-zinc-200 pt-6 text-[11px] uppercase tracking-[0.18em] text-zinc-400">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <p>© 2026 GoalTrack</p>
+          <p className="normal-case tracking-normal">
+            © 2026 GoalTrack | Founder: Ankit Kumar (IIT Gandhinagar)
+          </p>
           <div className="flex flex-wrap gap-5">
-            <span>Privacy policy</span>
+            <Link href="/privacy-policy">Privacy policy</Link>
             <span>Terms of service</span>
+            <Link href="/about-us">About us</Link>
             <span>Help center</span>
           </div>
         </div>

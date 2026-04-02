@@ -358,12 +358,14 @@ export default async function Home() {
             GoalTrack
           </div>
           <div className="flex flex-wrap gap-5">
-            <span>Privacy policy</span>
+            <Link href="/privacy-policy">Privacy policy</Link>
             <span>Terms of service</span>
-            <Link href="/how-it-works">About</Link>
+            <Link href="/about-us">About us</Link>
             <span>Contact</span>
           </div>
-          <div>© 2026 GoalTrack</div>
+          <div className="normal-case tracking-normal">
+            © 2026 GoalTrack | Founder: Ankit Kumar (IIT Gandhinagar)
+          </div>
         </div>
       </footer>
     </main>
