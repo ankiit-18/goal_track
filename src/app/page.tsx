@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
@@ -8,7 +9,26 @@ import {
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { getSession } from "@/lib/session";
+import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site-config";
 import { btnPrimaryClass, btnSecondaryClass } from "@/lib/ui-styles";
+
+export const metadata: Metadata = {
+  title: "GoalTrack - Plan long-term goals with clarity",
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "GoalTrack - Plan long-term goals with clarity",
+    description: SITE_DESCRIPTION,
+    url: "/",
+    siteName: SITE_NAME,
+  },
+  twitter: {
+    title: "GoalTrack - Plan long-term goals with clarity",
+    description: SITE_DESCRIPTION,
+  },
+};
 
 const heroMetrics = [
   { value: "12 wk", label: "Focused roadmaps" },
@@ -50,8 +70,38 @@ export default async function Home() {
   const session = await getSession();
   if (session) redirect("/dashboard");
 
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: "https://goaltrack.in",
+    description: SITE_DESCRIPTION,
+  };
+
+  const appJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: SITE_NAME,
+    applicationCategory: "ProductivityApplication",
+    operatingSystem: "Web",
+    description: SITE_DESCRIPTION,
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  };
+
   return (
     <main className="min-h-full bg-[#f6f8f3] text-zinc-950">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(appJsonLd) }}
+      />
       <div className="border-b border-emerald-900/8 bg-[#edf8f2]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3">

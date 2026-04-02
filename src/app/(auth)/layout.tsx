@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2, Compass, Layers3, Sparkles } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
@@ -19,6 +20,13 @@ const authHighlights = [
     icon: CheckCircle2,
   },
 ];
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function AuthLayout({
   children,
