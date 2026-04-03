@@ -30,13 +30,6 @@ export default function AboutUsPage() {
             </p>
           </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-zinc-950">Founder</h2>
-            <p className="mt-2">
-              <span className="font-semibold text-zinc-950">Ankit Kumar</span>,
-              IIT Gandhinagar.
-            </p>
-          </section>
         </div>
 
         <div className="mt-10 border-t border-zinc-200 pt-6">
