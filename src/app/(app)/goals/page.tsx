@@ -254,6 +254,7 @@ export default async function GoalsPage() {
             <Link href="/privacy-policy">Privacy policy</Link>
             <span>Terms of service</span>
             <Link href="/about-us">About us</Link>
+            <Link href="/blog">Blog</Link>
             <span>Help center</span>
           </div>
         </div>

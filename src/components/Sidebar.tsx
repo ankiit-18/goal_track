@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  BookOpenText,
   Compass,
   GraduationCap,
   LayoutGrid,
@@ -65,6 +66,7 @@ export default function Sidebar() {
   const isNew = pathname === "/goals/new";
   const isProfile = pathname.startsWith("/profile");
   const isHowItWorks = pathname === "/how-it-works";
+  const isBlog = pathname === "/blog" || pathname.startsWith("/blog/");
 
   return (
     <aside className="sticky top-0 hidden h-screen w-[300px] shrink-0 border-r border-zinc-200 bg-[#fbfcf8] lg:flex">
@@ -105,6 +107,12 @@ export default function Sidebar() {
               label="How it works"
               icon={<GraduationCap className="h-5 w-5" />}
               active={isHowItWorks}
+            />
+            <NavLink
+              href="/blog"
+              label="Blog"
+              icon={<BookOpenText className="h-5 w-5" />}
+              active={isBlog}
             />
             <NavLink
               href="/goals/new"

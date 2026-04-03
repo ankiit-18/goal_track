@@ -115,6 +115,9 @@ export default async function Home() {
             <a href="#features" className="transition hover:text-zinc-950">
               Features
             </a>
+            <Link href="/blog" className="transition hover:text-zinc-950">
+              Blog
+            </Link>
             <a href="#how-it-feels" className="transition hover:text-zinc-950">
               Pricing
             </a>
@@ -361,6 +364,7 @@ export default async function Home() {
             <Link href="/privacy-policy">Privacy policy</Link>
             <span>Terms of service</span>
             <Link href="/about-us">About us</Link>
+            <Link href="/blog">Blog</Link>
             <span>Contact</span>
           </div>
           <div className="normal-case tracking-normal">
