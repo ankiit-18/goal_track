@@ -6,16 +6,17 @@ export type BlogPost = {
   readingTime: string;
   publishedAt: string;
   content: string[];
+  internalLinks: { slug: string; anchorText: string }[];
 };
 
 const BLOG_POSTS: BlogPost[] = [
   {
     slug: "how-to-stay-consistent-when-motivation-drops",
-    title: "How to stay consistent when motivation drops",
+    title: "How to stay consistent (pillar guide)",
     excerpt:
-      "Build consistency with systems, not mood. Learn a practical rhythm you can repeat even on low-energy days.",
-    category: "Consistency",
-    readingTime: "12 min read",
+      "The main consistency framework: build systems that keep you moving even when motivation is low.",
+    category: "Pillar: Consistency",
+    readingTime: "14 min read",
     publishedAt: "2026-04-03",
     content: [
       "Motivation is useful, but it is not reliable. Consistency comes from reducing friction so you can act even when you do not feel inspired.",
@@ -28,6 +29,28 @@ const BLOG_POSTS: BlogPost[] = [
       "Use environment design. Place your study material, work tools, and planning dashboard where starting becomes easier than delaying. Convenience quietly drives consistency.",
       "Avoid all-or-nothing language. Replace 'I ruined the week' with 'I missed one block and can recover now.' The language you use changes whether you restart quickly or procrastinate longer.",
       "Every weekend, review what made consistency easier and what made it harder. Remove one blocker each week. Over a few months, your system becomes lighter and more sustainable.",
+    ],
+    internalLinks: [
+      {
+        slug: "time-management-for-goal-builders",
+        anchorText: "Time blocking and weekly capacity planning",
+      },
+      {
+        slug: "weekly-review-system-that-actually-works",
+        anchorText: "Weekly review system for consistent progress",
+      },
+      {
+        slug: "avoid-burnout-while-chasing-big-goals",
+        anchorText: "How to prevent burnout while staying consistent",
+      },
+      {
+        slug: "deep-work-routine-for-students-and-builders",
+        anchorText: "Deep work routine for high-focus execution",
+      },
+      {
+        slug: "how-to-plan-a-long-term-goal",
+        anchorText: "Plan long-term goals with clear milestones",
+      },
     ],
   },
   {
@@ -50,6 +73,24 @@ const BLOG_POSTS: BlogPost[] = [
       "Protect transition rituals between sessions. A quick reset, short walk, or breathing break helps your brain switch context and maintain quality across the day.",
       "Replace constant urgency with deadline tiers. Define what is urgent this week, what is important this month, and what is exploratory. This keeps your schedule aligned with impact.",
       "During review, remove one recurring time-waster. Better time management is often subtraction: fewer meetings, fewer context switches, and clearer boundaries.",
+    ],
+    internalLinks: [
+      {
+        slug: "how-to-stay-consistent-when-motivation-drops",
+        anchorText: "Consistency pillar: build repeatable systems",
+      },
+      {
+        slug: "how-to-plan-a-long-term-goal",
+        anchorText: "Long-term planning framework",
+      },
+      {
+        slug: "weekly-review-system-that-actually-works",
+        anchorText: "Weekly review template",
+      },
+      {
+        slug: "deep-work-routine-for-students-and-builders",
+        anchorText: "Deep work blocks and focus rituals",
+      },
     ],
   },
   {
@@ -74,6 +115,28 @@ const BLOG_POSTS: BlogPost[] = [
       "Plan for disruption. Include backup actions for low-energy days and recovery rules for missed weeks. A resilient plan survives imperfect execution.",
       "Keep the plan visible and alive. A long-term roadmap should be reviewed and refined, not written once and forgotten.",
     ],
+    internalLinks: [
+      {
+        slug: "how-to-stay-consistent-when-motivation-drops",
+        anchorText: "Consistency pillar for long projects",
+      },
+      {
+        slug: "time-management-for-goal-builders",
+        anchorText: "Time management and execution planning",
+      },
+      {
+        slug: "weekly-review-system-that-actually-works",
+        anchorText: "Weekly review to keep goals on track",
+      },
+      {
+        slug: "avoid-burnout-while-chasing-big-goals",
+        anchorText: "Avoid burnout during long-term goals",
+      },
+      {
+        slug: "deep-work-routine-for-students-and-builders",
+        anchorText: "Deep work routine to execute milestones",
+      },
+    ],
   },
   {
     slug: "weekly-review-system-that-actually-works",
@@ -95,6 +158,24 @@ const BLOG_POSTS: BlogPost[] = [
       "Move unfinished items through a filter: do now, schedule, delegate, or delete. Deleting low-value tasks is often the highest-impact move.",
       "Choose next week’s anchor milestone before adding minor tasks. This prevents shallow busyness and keeps momentum aligned with long-term outcomes.",
       "Finish by designing your first Monday action so the week starts with clarity instead of hesitation.",
+    ],
+    internalLinks: [
+      {
+        slug: "how-to-stay-consistent-when-motivation-drops",
+        anchorText: "Consistency pillar and recovery strategy",
+      },
+      {
+        slug: "time-management-for-goal-builders",
+        anchorText: "Time blocking and weekly scheduling",
+      },
+      {
+        slug: "how-to-plan-a-long-term-goal",
+        anchorText: "Long-term goals and stage planning",
+      },
+      {
+        slug: "avoid-burnout-while-chasing-big-goals",
+        anchorText: "Burnout prevention for sustainable progress",
+      },
     ],
   },
   {
@@ -118,6 +199,28 @@ const BLOG_POSTS: BlogPost[] = [
       "Create a downshift protocol for overloaded weeks: reduce goals, keep only critical habits, and simplify stage expectations until stability returns.",
       "Long-term success is not about doing the most in one month. It is about staying healthy enough to keep showing up for many months in a row.",
     ],
+    internalLinks: [
+      {
+        slug: "how-to-stay-consistent-when-motivation-drops",
+        anchorText: "Consistency systems that reduce stress",
+      },
+      {
+        slug: "time-management-for-goal-builders",
+        anchorText: "Manage workload with realistic capacity",
+      },
+      {
+        slug: "weekly-review-system-that-actually-works",
+        anchorText: "Weekly review to prevent overload",
+      },
+      {
+        slug: "deep-work-routine-for-students-and-builders",
+        anchorText: "Focused work without overextension",
+      },
+      {
+        slug: "how-to-plan-a-long-term-goal",
+        anchorText: "Scope long-term goals without burnout",
+      },
+    ],
   },
   {
     slug: "deep-work-routine-for-students-and-builders",
@@ -133,12 +236,34 @@ const BLOG_POSTS: BlogPost[] = [
       "Use short pre-session setup: clear desk, silence notifications, open only required tools.",
       "Finish each session by writing the next action. This makes tomorrow's restart effortless.",
       "Depth beats duration. Two focused hours with intention are often better than six scattered hours.",
-      "Start with a short warm-up to sharpen context: review yesterday's note, read the stage objective, and define today’s deliverable.",
+      "Start with a short warm-up to sharpen context: review yesterday's note, read the stage objective, and define today's deliverable.",
       "Use time blocks with explicit boundaries. A 90-minute focused block followed by a 10-minute reset often works better than open-ended sessions.",
       "Treat distractions as data. Track what breaks concentration and remove it at the source: phone placement, tab overload, noisy environments, or unclear tasks.",
       "Set a finish criterion for each block. Completion could be one section drafted, one chapter revised, or one problem set solved with review notes.",
       "Do not stack heavy cognitive tasks back-to-back without recovery. High quality requires alternating deep effort and deliberate rest.",
       "Review deep-work quality weekly, not just hours logged. Ask whether your sessions moved key milestones forward. Quality progress is the real metric.",
+    ],
+    internalLinks: [
+      {
+        slug: "how-to-stay-consistent-when-motivation-drops",
+        anchorText: "Consistency framework for deep work",
+      },
+      {
+        slug: "time-management-for-goal-builders",
+        anchorText: "Time-block deep work into your week",
+      },
+      {
+        slug: "how-to-plan-a-long-term-goal",
+        anchorText: "Map deep sessions to long-term stages",
+      },
+      {
+        slug: "weekly-review-system-that-actually-works",
+        anchorText: "Review deep-work output weekly",
+      },
+      {
+        slug: "avoid-burnout-while-chasing-big-goals",
+        anchorText: "Protect recovery while doing deep work",
+      },
     ],
   },
 ];

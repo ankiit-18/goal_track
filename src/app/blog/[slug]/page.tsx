@@ -64,6 +64,26 @@ function ArticleBody({ post }: { post: BlogPost }) {
         ))}
       </div>
 
+      <section className="mt-10 rounded-[22px] border border-zinc-200 bg-[#f7f8f4] p-6">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+          Continue reading
+        </p>
+        <h2 className="mt-3 font-heading text-3xl tracking-[-0.03em] text-zinc-950">
+          Related guides in this cluster
+        </h2>
+        <div className="mt-5 grid gap-3">
+          {post.internalLinks.map((item) => (
+            <Link
+              key={item.slug}
+              href={`/blog/${item.slug}`}
+              className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition hover:border-emerald-300 hover:text-emerald-700"
+            >
+              {item.anchorText}
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section className="mt-10 rounded-[22px] border border-emerald-100 bg-emerald-50/65 p-6">
         <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
           About our product
