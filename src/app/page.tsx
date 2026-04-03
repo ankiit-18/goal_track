@@ -367,9 +367,7 @@ export default async function Home() {
             <Link href="/blog">Blog</Link>
             <span>Contact</span>
           </div>
-          <div className="normal-case tracking-normal">
-            © 2026 GoalTrack | Founder: Ankit Kumar (IIT Gandhinagar)
-          </div>
+          <div className="normal-case tracking-normal">© 2026 GoalTrack</div>
         </div>
       </footer>
     </main>
