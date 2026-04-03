@@ -46,6 +46,15 @@ export default function BlogPage() {
               Short, clear playbooks you can apply this week. Every post is
               written to help you act, not just read.
             </p>
+
+            <div className="mt-5">
+              <Link
+                href="/"
+                className="inline-flex items-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500"
+              >
+                Back to GoalTrack home
+              </Link>
+            </div>
           </div>
         </div>
       </section>
